@@ -1,0 +1,39 @@
+id: exposed-git-config-directory
+
+info:
+  name: Lộ thư mục .git/config (Information Disclosure)
+  author: your-handle
+  severity: high
+  description: >
+    Thư mục .git bị deploy nhầm lên server production, cho phép đọc
+    .git/config và (nếu cấu hình sai thêm) dump toàn bộ source code
+    qua git-dumper. Phát hiện thủ công khi review directory bruteforce
+    thấy path .git/ trả 200/301 thay vì 403/404.
+  reference:
+    - "https://cwe.mitre.org/data/definitions/538.html"
+  tags: exposure,git,custom,misconfig
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.git/config"
+      - "{{BaseURL}}/.git/HEAD"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "[core]"
+          - "repositoryformatversion"
+        condition: or
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "url = (.+)"

@@ -1,0 +1,47 @@
+id: unauth-accessible-admin-endpoint
+
+info:
+  name: Admin/API endpoint truy cập được không cần xác thực
+  author: your-handle
+  severity: critical
+  description: >
+    Các endpoint quản trị bên dưới trả về nội dung hợp lệ (status 200
+    + có từ khoá đặc trưng của trang admin) khi request KHÔNG kèm
+    cookie/token xác thực. Phát hiện thủ công bằng cách xoá header
+    Authorization/Cookie rồi replay request trong Burp.
+  reference:
+    - "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
+  tags: access-control,idor,custom,broken-auth
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin"
+      - "{{BaseURL}}/admin/dashboard"
+      - "{{BaseURL}}/api/admin/users"
+      - "{{BaseURL}}/api/v1/admin/settings"
+
+    # Quan trọng: KHÔNG gửi cookie/header auth nào ở đây — mục đích là
+    # mô phỏng đúng request "chưa đăng nhập" đã test thủ công.
+    headers:
+      Cookie: ""
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "Dashboard"
+          - "Admin Panel"
+          - "user_list"
+          - "manage users"
+        condition: or
+        case-insensitive: true
+
+    # Gợi ý: thêm 1 request có auth hợp lệ để so sánh response length,
+    # tránh false positive khi trang admin redirect về login (status 200
+    # nhưng thực chất là trang login).

@@ -1,0 +1,39 @@
+# Template MẪU — bạn cần thay path/parameter/payload bằng đúng lỗi
+# XSS bạn đã TỰ TAY tìm thấy trước đó (không nên dùng payload chung
+# chung, vì mục tiêu bài tập là "đóng gói lại phát hiện thủ công thành
+# template có thể tái sử dụng").
+id: custom-reflected-xss-search-param
+
+info:
+  name: Reflected XSS qua tham số tìm kiếm (phát hiện thủ công)
+  author: your-handle
+  severity: medium
+  description: >
+    Tham số 'q' trên endpoint /search phản chiếu input không được
+    encode vào HTML response, dẫn tới reflected XSS. Phát hiện thủ
+    công ngày <YYYY-MM-DD>, template này để tái kiểm tra tự động
+    trên các endpoint/target tương tự.
+  reference:
+    - "<link tới report/PoC nội bộ của bạn nếu có>"
+  tags: xss,custom,reflected
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/search?q=%3Cscript%3Ealert(document.domain)%3C%2Fscript%3E"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<script>alert(document.domain)</script>"
+
+      - type: word
+        part: header
+        words:
+          - "text/html"
+        negative: false
+
+    # Gợi ý mở rộng: thêm thêm 1 request baseline (không payload) và
+    # dùng matcher "dsl" so sánh độ dài response để giảm false positive.
