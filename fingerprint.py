@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-"""
-fingerprint.py
----------------
-Mục đích: fingerprinting tech stack theo 2 lớp:
-  1. Phân tích THỦ CÔNG header + cookie (để hiểu vì sao công cụ như
-     Wappalyzer/WhatWeb kết luận như vậy — không chỉ tin mù kết quả tool).
-  2. Gọi WhatWeb (nếu có cài) để đối chiếu, tự động hoá phần lặp lại.
-
-Cài đặt:
-  pip install requests
-  # WhatWeb (Ruby, thường có sẵn trên Kali): whatweb --version
-
-Dùng:
-  python3 fingerprint.py https://target.example
-  python3 fingerprint.py https://target.example --json report.json
-"""
 
 import argparse
 import json
@@ -27,21 +11,42 @@ import requests
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (recon-toolkit; authorized-testing)"}
 
-# Header/cookie -> gợi ý công nghệ. Đây là phần "hiểu vì sao", không phải
-# danh sách đầy đủ — nên mở rộng dần khi gặp target mới.
 SIGNATURES = {
     "server": {
         r"nginx": "Nginx",
+        r"openresty": "OpenResty",
         r"apache": "Apache HTTPD",
         r"cloudflare": "Cloudflare (proxy/CDN)",
         r"microsoft-iis": "IIS",
         r"gunicorn": "Gunicorn (Python WSGI)",
         r"werkzeug": "Flask dev server (Werkzeug)",
+        r"uvicorn": "Uvicorn (Python ASGI)",
+        r"kestrel": "Kestrel (.NET Core)",
+        r"caddy": "Caddy Web Server",
+        r"litespeed": "LiteSpeed",
+        r"tomcat": "Apache Tomcat",
+        r"jetty": "Eclipse Jetty",
+        r"envoy": "Envoy Proxy",
+        r"traefik": "Traefik Proxy",
+        r"awselb": "AWS Elastic Load Balancer",
+        r"istio": "Istio Service Mesh",
     },
     "x-powered-by": {
         r"express": "Express.js (Node)",
         r"php": "PHP",
         r"asp\.net": "ASP.NET",
+        r"next\.js": "Next.js (React)",
+        r"nuxt": "Nuxt.js (Vue)",
+        r"nest": "NestJS (Node)",
+        r"ruby": "Ruby on Rails",
+        r"flask": "Flask (Python)",
+        r"django": "Django (Python)",
+        r"phalcon": "Phalcon (PHP)",
+        r"sails": "Sails.js (Node)",
+        r"strapi": "Strapi CMS",
+        r"wordpress": "WordPress",
+        r"spring": "Spring Boot (Java)",
+        r"svelte": "SvelteKit",
     },
     "set-cookie": {
         r"laravel_session": "Laravel (PHP)",
@@ -50,7 +55,48 @@ SIGNATURES = {
         r"connect\.sid": "Express.js session",
         r"django": "Django (Python)",
         r"csrftoken": "Django CSRF cookie",
+        r"wordpress_logged_in": "WordPress",
+        r"wp-settings": "WordPress",
+        r"rails_session": "Ruby on Rails",
+        r"_session_id": "Ruby on Rails",
+        r"asp\.net_sessionid": "ASP.NET",
+        r"fleet_session": "Elixir/Phoenix",
+        r"remember_token": "Laravel/Auth system",
+        r"sessionid": "Generic Python/Django",
+        r"next-auth": "NextAuth.js (Node)",
+        r"__session": "Firebase Hosting / Google Cloud",
+        r"torin_session": "Go framework",
     },
+    "x-generator": {
+        r"wordpress": "WordPress",
+        r"drupal": "Drupal",
+        r"joomla": "Joomla",
+        r"ghost": "Ghost CMS",
+        r"hugo": "Hugo SSG",
+        r"jekyll": "Jekyll SSG",
+        r"gatsby": "Gatsby (React)",
+        r"magento": "Magento",
+        r"shopify": "Shopify",
+        r"strapi": "Strapi CMS",
+    },
+    "via": {
+        r"cloudflare": "Cloudflare",
+        r"google": "Google Frontend",
+        r"kong": "Kong API Gateway",
+        r"varnish": "Varnish Cache",
+        r"fastly": "Fastly CDN",
+        r"akamai": "Akamai CDN",
+        r"cloudfront": "AWS CloudFront",
+        r"traefik": "Traefik",
+        r"envoy": "Envoy",
+        r"vegur": "Heroku Router",
+    },
+    "x-aspnet-version": {
+        r".*": "ASP.NET Framework",
+    },
+    "x-runtime": {
+        r".*": "Ruby on Rails / Rack application",
+    }
 }
 
 SECURITY_HEADERS = [
@@ -60,8 +106,11 @@ SECURITY_HEADERS = [
     "x-content-type-options",
     "referrer-policy",
     "permissions-policy",
+    "cross-origin-opener-policy",
+    "cross-origin-embedder-policy",
+    "cross-origin-resource-policy",
+    "x-permitted-cross-domain-policies",
 ]
-
 
 def analyze_headers(headers: dict) -> dict:
     lower_headers = {k.lower(): v for k, v in headers.items()}

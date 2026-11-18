@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-#
-# recon_orchestrator.sh
-# -----------------------
-# Gộp toàn bộ luồng Web Recon của WEEK-I thành 1 lệnh:
 #   1) build wordlist riêng cho target (wordlist_builder.py)
 #   2) directory bruteforce với gobuster VÀ ffuf (đối chiếu 2 tool)
 #   3) tech stack fingerprinting (fingerprint.py)
@@ -10,9 +6,6 @@
 #
 # Yêu cầu cài sẵn (không tự cài trong script để tránh chạy sudo ẩn):
 #   gobuster, ffuf, arjun, paramspider (hoặc python module), curl, jq (tuỳ chọn)
-#
-# CHỈ chạy với target đã được phép test (DVWA/Juice Shop nội bộ,
-# hoặc target nằm trong scope bug bounty hợp lệ).
 #
 # Dùng:
 #   ./recon_orchestrator.sh https://target.example ./results

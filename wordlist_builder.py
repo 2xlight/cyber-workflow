@@ -1,24 +1,4 @@
 #!/usr/bin/env python3
-"""
-wordlist_builder.py
---------------------
-Mục đích: tự build wordlist RIÊNG cho từng target thay vì chỉ dùng
-SecLists mặc định. Ý tưởng: một wordlist "sinh ra" từ chính target sẽ
-bắt được các path/tên biến đặc thù (vd: tên nội bộ công ty, prefix
-module, tên file JS) mà wordlist chung không có.
-
-Nguồn dữ liệu:
-  1. HTML của các trang seed (link nội bộ, form action, comment HTML)
-  2. File JavaScript được load (endpoint string, tên biến, route)
-  3. robots.txt / sitemap.xml (nếu có)
-  4. Danh sách "biến thể" tự sinh (số nhiều/ít, số, năm, đuôi file)
-
-Cài đặt:
-  pip install requests beautifulsoup4
-
-Dùng:
-  python3 wordlist_builder.py https://target.example --out wordlist.txt
-"""
 
 import argparse
 import re
@@ -37,6 +17,31 @@ COMMON_STEMS = [
     "login", "logout", "config", "settings", "upload", "uploads",
     "file", "files", "export", "import", "backup", "test", "dev",
     "staging", "internal", "v1", "v2", "v3",
+    # Xác thực & Quản lý tài khoản
+    "register", "signup", "signin", "signout", "password", "forgot-password",
+    "reset-password", "token", "oauth", "sso", "refresh", "verify", "2fa", "mfa",
+    "profile", "dashboard", "panel", "control", "management", "manager",
+    "root", "backend", "system", "cpanel", "phpmyadmin", "db", "database",
+
+    # API, Tài liệu & Phiên bản
+    "graphql", "swagger", "docs", "documentation", "redoc", "openapi",
+    "v4", "v5", "beta", "legacy", "sdk", "service", "services", "rpc",
+
+    # Lưu trữ tệp & Tài nguyên
+    "media", "assets", "static", "public", "downloads", "storage",
+    "images", "photos", "documents", "attachments", "temp", "tmp", "cache",
+
+    # Môi trường & Thử nghiệm
+    "qa", "uat", "sandbox", "demo", "local", "prod", "production",
+    "release", "old", "new", "patch", "hotfix", "maintenance",
+
+    # Giám sát, Thống kê & Hệ thống
+    "health", "healthz", "status", "metrics", "monitoring", "info",
+    "debug", "error", "logs", "prometheus", "grafana",
+
+    # Cấu hình & Tệp nhạy cảm
+    ".git", ".env", "robots.txt", "sitemap.xml", "package.json",
+    "composer.json", "web.config", ".htaccess", "docker-compose"
 ]
 
 JS_STRING_RE = re.compile(r"""["'`](/[a-zA-Z0-9_\-/{}.]{2,60})["'`]""")
